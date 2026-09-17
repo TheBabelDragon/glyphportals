@@ -10,6 +10,8 @@
     --glow:#39ff6a;
     --glow-dim:#0c3a1c;
     --amber:#7dffa0;
+    --portal:#ff6a39;
+    --finish:#ffd700;
   }
   html,body{
     margin:0; padding:0; height:100%; background:var(--bg);
@@ -35,35 +37,48 @@
     height:auto;
     touch-action:none;
   }
+  /* ---- improved touch controls ---- */
   #touchpad{
     position:absolute; left:0; right:0; bottom:0;
     display:none; justify-content:space-between; align-items:flex-end;
-    padding:0 14px 14px 14px; z-index:5; pointer-events:none;
+    padding:0 10px 12px 10px; z-index:5; pointer-events:none;
   }
-  .padgroup{ display:grid; gap:6px; pointer-events:auto; }
-  #movepad{ grid-template-columns:56px 56px 56px; grid-template-rows:56px 56px; }
-  #movepad .btn:nth-child(1){grid-column:2; grid-row:1;}
-  #movepad .btn:nth-child(2){grid-column:1; grid-row:2;}
-  #movepad .btn:nth-child(3){grid-column:2; grid-row:2;}
-  #movepad .btn:nth-child(4){grid-column:3; grid-row:2;}
-  #turnpad{ grid-template-columns:56px 56px; grid-template-rows:56px; }
+  .padgroup{ display:grid; gap:8px; pointer-events:auto; }
+  #movepad{
+    grid-template-columns:58px 58px 58px;
+    grid-template-rows:58px 58px 58px;
+  }
+  #movepad .btn[data-key="w"]{ grid-column:2; grid-row:1; }
+  #movepad .btn[data-key="a"]{ grid-column:1; grid-row:2; }
+  #movepad .btn[data-key="s"]{ grid-column:2; grid-row:2; }
+  #movepad .btn[data-key="d"]{ grid-column:3; grid-row:2; }
+  #turnpad{
+    grid-template-columns:58px 58px;
+    grid-template-rows:58px 58px;
+  }
+  #turnpad .btn[data-key="arrowleft"]{ grid-column:1; grid-row:1; }
+  #turnpad .btn[data-key="arrowright"]{ grid-column:2; grid-row:1; }
+  #turnpad .btn[data-key="q"]{ grid-column:1; grid-row:2; }
+  #turnpad .btn[data-key="e"]{ grid-column:2; grid-row:2; }
   .btn{
-    width:56px; height:56px; border-radius:10px;
-    background:rgba(12,58,28,0.55); border:1px solid var(--glow);
-    color:var(--glow); font-size:20px; font-family:'Courier New',monospace;
-    display:flex; align-items:center; justify-content:center;
-    text-shadow:0 0 6px var(--glow); box-shadow:0 0 10px rgba(57,255,106,0.15);
-    -webkit-tap-highlight-color:transparent;
+    width:58px; height:58px; border-radius:12px;
+    background:rgba(12,58,28,0.7); border:1px solid var(--glow);
+    color:var(--glow); font-size:13px; font-family:'Courier New',monospace;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-shadow:0 0 6px var(--glow); box-shadow:0 0 12px rgba(57,255,106,0.2);
+    -webkit-tap-highlight-color:transparent; line-height:1.15; gap:1px;
   }
-  .btn.active{ background:rgba(57,255,106,0.35); }
-  #mmBtn, #stereoBtn{
-    position:absolute; z-index:6; right:10px;
-    width:44px; height:32px; border-radius:6px; font-size:11px;
-    background:rgba(12,58,28,0.55); border:1px solid var(--glow-dim); color:var(--glow);
-    pointer-events:auto; -webkit-tap-highlight-color:transparent;
+  .btn .ico{ font-size:18px; }
+  .btn.active{ background:rgba(57,255,106,0.4); border-color:var(--amber); }
+  #sideBtns{
+    position:absolute; z-index:6; right:8px; top:150px;
+    display:flex; flex-direction:column; gap:6px; pointer-events:auto;
   }
-  #mmBtn{ top:160px; }
-  #stereoBtn{ top:198px; }
+  #sideBtns button{
+    width:48px; height:34px; border-radius:6px; font-size:11px;
+    background:rgba(12,58,28,0.65); border:1px solid var(--glow-dim); color:var(--glow);
+    -webkit-tap-highlight-color:transparent; font-family:inherit;
+  }
   @media (pointer:coarse){
     #touchpad{ display:flex; }
     #hud{ display:none; }
@@ -71,35 +86,60 @@
   body.force-touch #touchpad{ display:flex !important; }
   body.force-touch #hud{ display:none; }
   #hud{
-    position:absolute; top:10px; left:10px; font-size:12px;
+    position:absolute; top:8px; left:8px; font-size:11px;
     color:var(--glow); text-shadow:0 0 4px var(--glow);
-    letter-spacing:1px; pointer-events:none; opacity:0.85;
+    letter-spacing:0.5px; pointer-events:none; opacity:0.9;
+    max-width:55vw;
   }
   #hud .k{color:var(--amber)}
   #minimap{
-    position:absolute; top:10px; right:10px;
-    background:rgba(0,10,3,0.6); border:1px solid var(--glow-dim);
+    position:absolute; top:8px; right:8px;
+    background:rgba(0,10,3,0.7); border:1px solid var(--glow-dim);
   }
   #title{
     position:absolute; inset:0; background:#000; z-index:10;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
-    cursor:pointer;
+    cursor:pointer; padding:12px;
   }
   #title h1{
-    font-size:36px; letter-spacing:3px; margin:0 0 6px 0;
-    text-shadow:0 0 10px var(--glow), 0 0 30px var(--glow);
+    font-size:clamp(28px,6vw,40px); letter-spacing:3px; margin:0 0 8px 0;
+    text-shadow:0 0 10px var(--glow), 0 0 30px var(--glow); z-index:2;
   }
-  #title .sub{opacity:0.8; margin-bottom:26px; font-size:13px; text-align:center; max-width:90vw;}
+  #title .sub{opacity:0.85; margin-bottom:18px; font-size:13px; text-align:center; max-width:92vw; z-index:2;}
+  #levelSelect{
+    display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
+    margin-bottom:20px; z-index:2; max-width:92vw;
+  }
+  #levelSelect button{
+    background:rgba(12,58,28,0.7); border:1px solid var(--glow);
+    color:var(--glow); padding:8px 12px; border-radius:8px;
+    font-family:inherit; font-size:12px; cursor:pointer;
+  }
+  #levelSelect button:hover, #levelSelect button.active{
+    background:rgba(57,255,106,0.3); border-color:var(--amber);
+  }
   #title .blink{
-    animation:blink 1.2s steps(2) infinite; font-size:13px; color:var(--amber);
+    animation:blink 1.2s steps(2) infinite; font-size:13px; color:var(--amber); z-index:2;
   }
   @keyframes blink{50%{opacity:0}}
   #rain{position:absolute; inset:0; z-index:1}
+  #win{
+    position:absolute; inset:0; background:rgba(0,0,0,0.85); z-index:15;
+    display:none; flex-direction:column; align-items:center; justify-content:center;
+    color:var(--finish); text-align:center; padding:20px;
+  }
+  #win h2{ font-size:32px; margin:0 0 10px; text-shadow:0 0 16px var(--finish); }
+  #win p{ opacity:0.9; margin:0 0 18px; }
+  #win button{
+    background:rgba(12,58,28,0.8); border:1px solid var(--glow);
+    color:var(--glow); padding:10px 18px; border-radius:8px;
+    font-family:inherit; font-size:14px; cursor:pointer; margin:4px;
+  }
   #debug{
-    position:absolute; bottom:4px; left:4px; z-index:20;
-    font-size:10px; color:#7dffa0; background:rgba(0,0,0,0.6);
+    position:absolute; bottom:4px; left:4px; z-index:4;
+    font-size:10px; color:#7dffa0; background:rgba(0,0,0,0.55);
     padding:3px 6px; border-radius:4px; pointer-events:none;
-    white-space:pre; line-height:1.4;
+    white-space:pre; line-height:1.35;
   }
 </style>
 </head>
@@ -107,40 +147,57 @@
 <div id="wrap">
   <div id="title">
     <canvas id="rain"></canvas>
-    <h1 style="z-index:2">GLYPHPORTALS</h1>
-    <div class="sub" style="z-index:2">Hebrew-letter raycaster + seamless portal non-Euclidean geometry<br>
-    (portal continuation inspired by CodeParade) · red/cyan anaglyph 3D</div>
-    <div class="blink" style="z-index:2">press any key or tap to step into the wall of text</div>
+    <h1>GLYPHPORTALS</h1>
+    <div class="sub">Hebrew-letter raycaster · seamless portal non-Euclidean mazes<br>
+    pick a level, then press any key / tap to enter</div>
+    <div id="levelSelect"></div>
+    <div class="blink">press any key or tap to start selected level</div>
   </div>
+
+  <div id="win">
+    <h2>FINISH LINE</h2>
+    <p id="winMsg">You reached the goal through non-Euclidean space.</p>
+    <div>
+      <button id="winNext">Next level</button>
+      <button id="winRetry">Retry</button>
+      <button id="winMenu">Level select</button>
+    </div>
+  </div>
+
   <canvas id="game" width="900" height="540"></canvas>
   <div id="hud">
-    <span class="k">W A S D</span> walk/strafe &nbsp; <span class="k">← →</span> turn &nbsp; <span class="k">M</span> minimap &nbsp; <span class="k">V</span> anaglyph/mono
+    <span class="k">WASD</span> move &nbsp; <span class="k">←→</span> turn &nbsp; <span class="k">Q E</span> strafe &nbsp; <span class="k">M</span> map &nbsp; <span class="k">V</span> 3D &nbsp; <span class="k">1-4</span> level
   </div>
-  <canvas id="minimap" width="140" height="140"></canvas>
-  <button id="mmBtn">MAP</button>
-  <button id="stereoBtn">3D</button>
+  <canvas id="minimap" width="150" height="150"></canvas>
+  <div id="sideBtns">
+    <button id="mmBtn">MAP</button>
+    <button id="stereoBtn">3D</button>
+    <button id="levelBtn">LVL</button>
+  </div>
   <div id="debug"></div>
 
   <div id="touchpad">
     <div id="movepad" class="padgroup">
-      <div class="btn" data-key="w">W</div>
-      <div class="btn" data-key="a">A</div>
-      <div class="btn" data-key="s">S</div>
-      <div class="btn" data-key="d">D</div>
+      <div class="btn" data-key="w"><span class="ico">↑</span>FWD</div>
+      <div class="btn" data-key="a"><span class="ico">←</span>STR L</div>
+      <div class="btn" data-key="s"><span class="ico">↓</span>BACK</div>
+      <div class="btn" data-key="d"><span class="ico">→</span>STR R</div>
     </div>
     <div id="turnpad" class="padgroup">
-      <div class="btn" data-key="arrowleft">◀</div>
-      <div class="btn" data-key="arrowright">▶</div>
+      <div class="btn" data-key="arrowleft"><span class="ico">↺</span>TURN L</div>
+      <div class="btn" data-key="arrowright"><span class="ico">↻</span>TURN R</div>
+      <div class="btn" data-key="q"><span class="ico">◧</span>STR L</div>
+      <div class="btn" data-key="e"><span class="ico">◨</span>STR R</div>
     </div>
   </div>
 </div>
 
 <script>
-/* Render ramp: the 22 standard Hebrew letters. No finals. */
+/* 22 standard Hebrew letters — no finals */
 const HEB = 'אבגדהוזחטיכלמנסעפצקרשת';
-function glyphFor(seed){ return HEB[Math.abs(seed) % HEB.length]; }
+function glyphFor(seed){ return HEB[Math.abs(seed|0) % HEB.length]; }
 
-/* ---------- Title screen matrix rain ---------- */
+/* ---------- Title rain ---------- */
 const rainCv = document.getElementById('rain');
 const rctx = rainCv.getContext('2d');
 function sizeRain(){ rainCv.width = window.innerWidth; rainCv.height = window.innerHeight; }
@@ -159,81 +216,225 @@ function drawRain(){
   rctx.fillStyle = '#39ff6a';
   rctx.font = '14px monospace';
   for(let i=0;i<drops.length;i++){
-    const ch = glyphFor((Math.random()*1000)|0);
-    rctx.fillText(ch, i*16, drops[i]*16);
+    rctx.fillText(glyphFor((Math.random()*1000)|0), i*16, drops[i]*16);
     if(drops[i]*16 > rainCv.height && Math.random() > 0.975) drops[i] = 0;
     drops[i]++;
   }
 }
 let rainTimer = setInterval(drawRain, 45);
 
-/* ---------- Map ----------
-   0 = open, 1 = solid wall, 2/3 = portal pair A, 4/5 = portal pair B
-   Portals are thin “faces”; walking into them teleports. */
-const MAP = [
-"1111111111111111",
-"1000000000000001",
-"1011110111101101",
-"1010010100001101",
-"1010010111101001",
-"1010000100001001",
-"1011101101110101",
-"1000101000010101",
-"1101101011110101",
-"1100001010000101",
-"1101111010111101",
-"1000001010100001",
-"1011101010101101",
-"1010001010101001",
-"1010111010101101",
-"1000000000000001",
-"1111111111111111"
-].map(row => row.split('').map(Number));
+/* ============================================================
+   LEVEL DATA — custom non-Euclidean mazes
+   Map codes:
+     0 open
+     1 solid wall
+     2+ portal pair ids (even/odd partners defined in portals)
+     9 finish line
+   ============================================================ */
+const LEVELS = [
+  {
+    name: "Shuk Loop",
+    desc: "Classic market corridors + two portal pairs",
+    start: { x: 2.5, y: 1.5, dir: 0 },
+    map: [
+      "1111111111111111",
+      "1000000000000001",
+      "1011110111101101",
+      "1010010100001101",
+      "1010010111101001",
+      "1010000100001001",
+      "1011101101110101",
+      "1000101000010101",
+      "1101101011110101",
+      "1100001010000101",
+      "1101111010111101",
+      "1000001010100001",
+      "1011101010101101",
+      "1010001010101001",
+      "1010111010101101",
+      "1000000000009001",
+      "1111111111111111"
+    ],
+    // place portals after parse
+    portalCells: [[3,4,2],[12,8,3],[7,2,4],[7,14,5]],
+    portals: {
+      2: { x:3.5, y:4.5, partner:3, exitDir: Math.PI },
+      3: { x:12.5, y:8.5, partner:2, exitDir: 0 },
+      4: { x:7.5, y:2.5, partner:5, exitDir: Math.PI/2 },
+      5: { x:7.5, y:14.5, partner:4, exitDir: -Math.PI/2 }
+    }
+  },
+  {
+    name: "Bigger Inside",
+    desc: "Small outer room · large inner chamber via portals",
+    start: { x: 2.5, y: 2.5, dir: 0 },
+    map: [
+      "111111111111111",
+      "100000000000001",
+      "100111111110001",
+      "100100000010001",
+      "100100090010001",
+      "100100000010001",
+      "100111111110001",
+      "100000000000001",
+      "111111111111111"
+    ],
+    portalCells: [[1,3,2],[13,3,3],[1,5,4],[13,5,5]],
+    portals: {
+      2: { x:1.5, y:3.5, partner:3, exitDir: 0 },
+      3: { x:13.5, y:3.5, partner:2, exitDir: Math.PI },
+      4: { x:1.5, y:5.5, partner:5, exitDir: 0 },
+      5: { x:13.5, y:5.5, partner:4, exitDir: Math.PI }
+    }
+  },
+  {
+    name: "Möbius Corridor",
+    desc: "Walking the loop flips you to the other side",
+    start: { x: 2.5, y: 4.5, dir: 0 },
+    map: [
+      "1111111111111",
+      "1000000000001",
+      "1011111111101",
+      "1010000000101",
+      "1010009000101",
+      "1010000000101",
+      "1011111111101",
+      "1000000000001",
+      "1111111111111"
+    ],
+    portalCells: [[1,1,2],[11,1,3],[1,7,4],[11,7,5]],
+    portals: {
+      2: { x:1.5, y:1.5, partner:3, exitDir: 0 },
+      3: { x:11.5, y:1.5, partner:2, exitDir: Math.PI },
+      4: { x:1.5, y:7.5, partner:5, exitDir: 0 },
+      5: { x:11.5, y:7.5, partner:4, exitDir: Math.PI }
+    }
+  },
+  {
+    name: "Portal Maze",
+    desc: "Multiple linked pairs — find the finish through folds",
+    start: { x: 1.5, y: 1.5, dir: Math.PI/2 },
+    map: [
+      "1111111111111111",
+      "1000000010000001",
+      "1011111010111101",
+      "1000000010000001",
+      "1011111010111101",
+      "1000000010000001",
+      "1011111010111101",
+      "1000000010000001",
+      "1011111010111101",
+      "1000000010000001",
+      "1011111010111101",
+      "1000000010000001",
+      "1011111010111101",
+      "1000000010000901",
+      "1111111111111111"
+    ],
+    portalCells: [
+      [4,1,2],[4,3,3],
+      [11,1,4],[11,3,5],
+      [4,5,6],[4,7,7],
+      [11,5,8],[11,7,9],
+      [7,9,10],[7,11,11]
+    ],
+    portals: {
+      2:  { x:4.5,  y:1.5, partner:3,  exitDir: Math.PI/2 },
+      3:  { x:4.5,  y:3.5, partner:2,  exitDir: -Math.PI/2 },
+      4:  { x:11.5, y:1.5, partner:5,  exitDir: Math.PI/2 },
+      5:  { x:11.5, y:3.5, partner:4,  exitDir: -Math.PI/2 },
+      6:  { x:4.5,  y:5.5, partner:7,  exitDir: Math.PI/2 },
+      7:  { x:4.5,  y:7.5, partner:6,  exitDir: -Math.PI/2 },
+      8:  { x:11.5, y:5.5, partner:9,  exitDir: Math.PI/2 },
+      9:  { x:11.5, y:7.5, partner:8,  exitDir: -Math.PI/2 },
+      10: { x:7.5,  y:9.5, partner:11, exitDir: Math.PI/2 },
+      11: { x:7.5,  y:11.5, partner:10, exitDir: -Math.PI/2 }
+    }
+  }
+];
 
-/* Overlay a couple of portal cells for demo non-Euclidean loops */
-// Portal pair A: cells (3,4) <-> (12,8)  (values 2 and 3)
-MAP[4][3] = 2;
-MAP[8][12] = 3;
-// Portal pair B: cells (7,2) <-> (7,14)  (values 4 and 5)
-MAP[2][7] = 4;
-MAP[14][7] = 5;
+/* Runtime level state */
+let currentLevel = 0;
+let MAP = [];
+let MAPW = 0, MAPH = 0;
+let PORTALS = {};
+let player = { x:2.5, y:1.5, dir:0, fov: Math.PI/3 };
+const MOVE_SPEED = 2.7;
+const TURN_SPEED = 2.2;
+let portalCooldown = 0;
+let finished = false;
 
-const MAPW = MAP[0].length, MAPH = MAP.length;
-
-/* Portal definitions: id -> {x,y, dirOut}  dirOut = heading the player faces after exit */
-const PORTALS = {
-  2: { x: 3.5, y: 4.5, partner: 3, exitDir: Math.PI },   // exit facing west-ish
-  3: { x:12.5, y: 8.5, partner: 2, exitDir: 0 },
-  4: { x: 7.5, y: 2.5, partner: 5, exitDir: Math.PI/2 },
-  5: { x: 7.5, y:14.5, partner: 4, exitDir: -Math.PI/2 }
-};
+function loadLevel(idx){
+  currentLevel = ((idx % LEVELS.length) + LEVELS.length) % LEVELS.length;
+  const L = LEVELS[currentLevel];
+  MAP = L.map.map(row => row.split('').map(Number));
+  // apply portal cell overrides
+  for(const [x,y,id] of L.portalCells){
+    if(MAP[y] && MAP[y][x] !== undefined) MAP[y][x] = id;
+  }
+  MAPW = MAP[0].length;
+  MAPH = MAP.length;
+  PORTALS = L.portals;
+  player.x = L.start.x;
+  player.y = L.start.y;
+  player.dir = L.start.dir;
+  portalCooldown = 0;
+  finished = false;
+  document.getElementById('win').style.display = 'none';
+  // highlight selected button
+  document.querySelectorAll('#levelSelect button').forEach((b,i)=>{
+    b.classList.toggle('active', i === currentLevel);
+  });
+}
 
 function cellType(x,y){
   if(x<0||y<0||x>=MAPW||y>=MAPH) return 1;
   return MAP[y][x];
 }
 function isSolid(x,y){
-  const t = cellType(x,y);
-  return t === 1; // only pure walls block; portals are walkable triggers
+  return cellType(x,y) === 1;
 }
 function isPortal(x,y){
   const t = cellType(x,y);
-  return t >= 2 ? t : 0;
+  return (t >= 2 && t !== 9) ? t : 0;
+}
+function isFinish(x,y){
+  return cellType(x,y) === 9;
 }
 
-/* ---------- Player ---------- */
-let player = { x: 2.5, y: 1.5, dir: 0, fov: Math.PI/3 };
-const MOVE_SPEED = 2.6;
-const TURN_SPEED = 2.0;
-let portalCooldown = 0; // prevent rapid re-trigger
+/* Build level select UI */
+const levelSelect = document.getElementById('levelSelect');
+LEVELS.forEach((L,i)=>{
+  const b = document.createElement('button');
+  b.textContent = `${i+1}. ${L.name}`;
+  b.title = L.desc;
+  b.addEventListener('click', e => {
+    e.stopPropagation();
+    loadLevel(i);
+  });
+  levelSelect.appendChild(b);
+});
+loadLevel(0);
 
+/* ---------- Input ---------- */
 const keys = {};
-window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; startGame(); });
+window.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  keys[k] = true;
+  if(!started) startGame();
+  if(k === 'm') showMinimap = !showMinimap;
+  if(k === 'v') ANAGLYPH = !ANAGLYPH;
+  if(k >= '1' && k <= '4'){ loadLevel(parseInt(k,10)-1); if(!started) startGame(); }
+});
 window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
-document.getElementById('title').addEventListener('click', startGame);
-document.getElementById('title').addEventListener('touchstart', e => { e.preventDefault(); startGame(); }, {passive:false});
 
-/* ---------- touch controls ---------- */
+document.getElementById('title').addEventListener('click', startGame);
+document.getElementById('title').addEventListener('touchstart', e => {
+  if(e.target.closest('#levelSelect')) return;
+  e.preventDefault(); startGame();
+}, {passive:false});
+
+/* Touch / mouse pad */
 const padButtons = Array.from(document.querySelectorAll('#touchpad .btn'));
 function updatePadFromPoints(points){
   padButtons.forEach(btn => {
@@ -246,23 +447,41 @@ function updatePadFromPoints(points){
 function touchPoints(e){
   return Array.from(e.touches || []).map(t => ({x:t.clientX, y:t.clientY}));
 }
-document.addEventListener('touchstart', e => { startGame(); updatePadFromPoints(touchPoints(e)); e.preventDefault(); }, {passive:false});
+document.addEventListener('touchstart', e => {
+  if(!started) return;
+  updatePadFromPoints(touchPoints(e));
+  e.preventDefault();
+}, {passive:false});
 document.addEventListener('touchmove', e => { updatePadFromPoints(touchPoints(e)); e.preventDefault(); }, {passive:false});
 document.addEventListener('touchend', e => { updatePadFromPoints(touchPoints(e)); }, {passive:false});
 document.addEventListener('touchcancel', e => { updatePadFromPoints(touchPoints(e)); }, {passive:false});
+
 let mouseHeld = false;
-document.addEventListener('mousedown', e => { mouseHeld = true; startGame(); updatePadFromPoints([{x:e.clientX,y:e.clientY}]); });
+document.addEventListener('mousedown', e => {
+  if(!started) return;
+  if(e.target.closest('.btn') || e.target.closest('#sideBtns') || e.target.closest('#win')) return;
+  mouseHeld = true;
+  updatePadFromPoints([{x:e.clientX,y:e.clientY}]);
+});
 document.addEventListener('mousemove', e => { if(mouseHeld) updatePadFromPoints([{x:e.clientX,y:e.clientY}]); });
 window.addEventListener('mouseup', () => { mouseHeld = false; updatePadFromPoints([]); });
+
 if('ontouchstart' in window || navigator.maxTouchPoints > 0){
   document.body.classList.add('force-touch');
 }
-document.getElementById('mmBtn').addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); showMinimap = !showMinimap; }, {passive:false});
-document.getElementById('mmBtn').addEventListener('click', () => { showMinimap = !showMinimap; });
-document.getElementById('stereoBtn').addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); ANAGLYPH = !ANAGLYPH; }, {passive:false});
-document.getElementById('stereoBtn').addEventListener('click', () => { ANAGLYPH = !ANAGLYPH; });
 
-/* ---------- Game canvas ---------- */
+document.getElementById('mmBtn').addEventListener('click', () => { showMinimap = !showMinimap; });
+document.getElementById('mmBtn').addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); showMinimap = !showMinimap; }, {passive:false});
+document.getElementById('stereoBtn').addEventListener('click', () => { ANAGLYPH = !ANAGLYPH; });
+document.getElementById('stereoBtn').addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); ANAGLYPH = !ANAGLYPH; }, {passive:false});
+document.getElementById('levelBtn').addEventListener('click', () => { showTitle(); });
+document.getElementById('levelBtn').addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); showTitle(); }, {passive:false});
+
+document.getElementById('winNext').addEventListener('click', () => { loadLevel(currentLevel+1); });
+document.getElementById('winRetry').addEventListener('click', () => { loadLevel(currentLevel); });
+document.getElementById('winMenu').addEventListener('click', () => { showTitle(); });
+
+/* ---------- Rendering ---------- */
 const cv = document.getElementById('game');
 const ctx = cv.getContext('2d');
 const ROWS = 60;
@@ -271,18 +490,12 @@ const mm = document.getElementById('minimap');
 const mctx = mm.getContext('2d');
 let showMinimap = true;
 const dbgEl = document.getElementById('debug');
-
 let ANAGLYPH = true;
 const MAX_DISPARITY_PX = 3.4;
 let flickerFrame = 0;
 const COLS = 100;
 const CELL = cv.width / COLS;
 
-/**
- * Raycast with portal continuation (CodeParade-style).
- * When a ray hits a portal cell it is rigidly transformed to the partner portal
- * and continues, accumulating distance so depth cues stay correct.
- */
 function castRay(ox, oy, rdx, rdy, maxSteps){
   let mapX = Math.floor(ox), mapY = Math.floor(oy);
   const deltaDistX = rdx === 0 ? 1e30 : Math.abs(1/rdx);
@@ -294,8 +507,9 @@ function castRay(ox, oy, rdx, rdy, maxSteps){
   else { stepY = 1; sideDistY = (mapY + 1 - oy) * deltaDistY; }
 
   let hit = 0, side = 0, dist = 0, guard = 0;
-  let px = ox, py = oy; // current origin (updated on portal)
+  let px = ox, py = oy;
   let prdx = rdx, prdy = rdy;
+  let isFinishHit = false;
 
   while(hit === 0 && guard < maxSteps){
     if(sideDistX < sideDistY){
@@ -307,32 +521,32 @@ function castRay(ox, oy, rdx, rdy, maxSteps){
     if(t === 1){
       hit = 1;
       dist = side === 0 ? (sideDistX - deltaDistX) : (sideDistY - deltaDistY);
-    } else if(t >= 2){
-      // portal hit — continue from partner
+    } else if(t === 9){
+      // finish line treated as a soft wall for visual, but walkable for player
+      hit = 1;
+      isFinishHit = true;
+      dist = side === 0 ? (sideDistX - deltaDistX) : (sideDistY - deltaDistY);
+    } else if(t >= 2 && PORTALS[t]){
       const src = PORTALS[t];
       const dst = PORTALS[src.partner];
-      // simple rigid: place ray just outside the exit cell, keep absolute direction for now
-      // (more advanced: rotate by exitDir difference)
+      if(!dst){ hit = 1; dist = 0.5; break; }
       const outDir = dst.exitDir;
       prdx = Math.cos(outDir);
       prdy = Math.sin(outDir);
-      // push a little past the portal cell so we don't immediately re-hit
-      px = dst.x + prdx * 0.3;
-      py = dst.y + prdy * 0.3;
+      px = dst.x + prdx * 0.35;
+      py = dst.y + prdy * 0.35;
       mapX = Math.floor(px);
       mapY = Math.floor(py);
-      // reset DDA distances relative to new origin
       if(prdx < 0){ stepX = -1; sideDistX = (px - mapX) * deltaDistX; }
       else { stepX = 1; sideDistX = (mapX + 1 - px) * deltaDistX; }
       if(prdy < 0){ stepY = -1; sideDistY = (py - mapY) * deltaDistY; }
       else { stepY = 1; sideDistY = (mapY + 1 - py) * deltaDistY; }
-      // accumulate a small fixed cost so portals aren't free
-      dist += 0.4;
+      dist += 0.35;
     }
     guard++;
   }
-  if(hit === 0) dist = 20; // miss
-  return { dist: Math.max(0.05, dist), side, mapX, mapY };
+  if(hit === 0) dist = 20;
+  return { dist: Math.max(0.05, dist), side, mapX, mapY, isFinishHit };
 }
 
 function renderFrame(){
@@ -352,8 +566,7 @@ function renderFrame(){
     const camX = 2*col/COLS - 1;
     const rdx = dirX + planeX*camX;
     const rdy = dirY + planeY*camX;
-
-    const { dist: perpDist, side, mapX, mapY } = castRay(player.x, player.y, rdx, rdy, 80);
+    const { dist: perpDist, side, mapX, mapY, isFinishHit } = castRay(player.x, player.y, rdx, rdy, 90);
 
     const lineHeight = Math.floor(ROWS / perpDist);
     let drawStart = Math.floor(-lineHeight/2 + ROWS/2);
@@ -367,9 +580,10 @@ function renderFrame(){
     const colX = col*CELL;
     const disparity = ANAGLYPH ? MAX_DISPARITY_PX * Math.max(0, 1 - perpDist/5) : 0;
 
+    // ceiling ambient
     for(let row=0; row<drawStart; row++){
       const skyFactor = (row/ROWS) * 0.4;
-      if(Math.random() < 0.06 + skyFactor*0.05){
+      if(Math.random() < 0.05 + skyFactor*0.04){
         const seed3 = col*11 + row*23 + Math.floor(flickerFrame/4) + mapX;
         const sb = 0.15 + skyFactor;
         ctx.fillStyle = `rgb(0,${Math.floor(sb*150)+10},${Math.floor(sb*130)+10})`;
@@ -382,7 +596,21 @@ function renderFrame(){
       const ch = glyphFor(seed);
       const g = Math.floor(bright*220)+15;
 
-      if(ANAGLYPH){
+      if(isFinishHit){
+        // gold-tinted finish wall
+        const gold = Math.floor(bright*200)+40;
+        if(ANAGLYPH){
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.fillStyle = `rgb(${gold},0,0)`;
+          ctx.fillText(ch, colX - disparity/2, row*CELL);
+          ctx.fillStyle = `rgb(0,${Math.floor(gold*0.9)},${Math.floor(gold*0.2)})`;
+          ctx.fillText(ch, colX + disparity/2, row*CELL);
+          ctx.globalCompositeOperation = 'source-over';
+        } else {
+          ctx.fillStyle = `rgb(${gold},${Math.floor(gold*0.85)},${Math.floor(gold*0.2)})`;
+          ctx.fillText(ch, colX, row*CELL);
+        }
+      } else if(ANAGLYPH){
         ctx.globalCompositeOperation = 'lighter';
         ctx.fillStyle = `rgb(${Math.floor(bright*230)+10},0,0)`;
         ctx.fillText(ch, colX - disparity/2, row*CELL);
@@ -399,7 +627,7 @@ function renderFrame(){
     for(let row = drawEnd+1; row < ROWS; row++){
       const rowDist = ROWS / (2*row - ROWS + 0.001);
       const fb = Math.max(0, 1 - Math.abs(rowDist)/maxDist) * 0.5;
-      if(Math.random() < 0.14){
+      if(Math.random() < 0.12){
         const seed2 = col*7 + row*29 + Math.floor(flickerFrame/3);
         ctx.fillStyle = `rgb(0,${Math.floor(fb*160)+10},${Math.floor(fb*40)})`;
         ctx.fillText(glyphFor(seed2), colX, row*CELL);
@@ -412,14 +640,15 @@ function renderFrame(){
 function drawMinimap(){
   mctx.clearRect(0,0,mm.width,mm.height);
   if(!showMinimap) return;
-  const cs = mm.width / MAPW;
+  const cs = Math.min(mm.width / MAPW, mm.height / MAPH);
   for(let y=0;y<MAPH;y++){
     for(let x=0;x<MAPW;x++){
       const t = MAP[y][x];
       if(t === 1) mctx.fillStyle = '#0c3a1c';
-      else if(t >= 2) mctx.fillStyle = '#ff6a39'; // portals in amber
+      else if(t === 9) mctx.fillStyle = '#ffd700';
+      else if(t >= 2) mctx.fillStyle = '#ff6a39';
       else mctx.fillStyle = '#000';
-      mctx.fillRect(x*cs, y*cs, cs, cs);
+      mctx.fillRect(x*cs, y*cs, cs+0.5, cs+0.5);
     }
   }
   mctx.fillStyle = '#39ff6a';
@@ -429,21 +658,34 @@ function drawMinimap(){
   mctx.strokeStyle = '#39ff6a';
   mctx.beginPath();
   mctx.moveTo(player.x*cs, player.y*cs);
-  mctx.lineTo((player.x+Math.cos(player.dir)*1.5)*cs, (player.y+Math.sin(player.dir)*1.5)*cs);
+  mctx.lineTo((player.x+Math.cos(player.dir)*1.4)*cs, (player.y+Math.sin(player.dir)*1.4)*cs);
   mctx.stroke();
 }
 
 function tryPortal(){
-  if(portalCooldown > 0) return;
+  if(portalCooldown > 0 || finished) return;
   const cx = Math.floor(player.x), cy = Math.floor(player.y);
   const pid = isPortal(cx, cy);
-  if(pid){
+  if(pid && PORTALS[pid]){
     const src = PORTALS[pid];
     const dst = PORTALS[src.partner];
-    player.x = dst.x;
-    player.y = dst.y;
-    player.dir = dst.exitDir;
-    portalCooldown = 0.6; // seconds
+    if(dst){
+      player.x = dst.x;
+      player.y = dst.y;
+      player.dir = dst.exitDir;
+      portalCooldown = 0.55;
+    }
+  }
+}
+
+function checkFinish(){
+  if(finished) return;
+  if(isFinish(Math.floor(player.x), Math.floor(player.y))){
+    finished = true;
+    const L = LEVELS[currentLevel];
+    document.getElementById('winMsg').textContent =
+      `Level “${L.name}” complete. ${L.desc}`;
+    document.getElementById('win').style.display = 'flex';
   }
 }
 
@@ -453,30 +695,34 @@ function loop(t){
   lastT = t;
   if(portalCooldown > 0) portalCooldown -= dt;
 
-  if(keys['arrowleft']) player.dir -= TURN_SPEED*dt;
-  if(keys['arrowright']) player.dir += TURN_SPEED*dt;
+  if(!finished){
+    if(keys['arrowleft']) player.dir -= TURN_SPEED*dt;
+    if(keys['arrowright']) player.dir += TURN_SPEED*dt;
 
-  const dirX = Math.cos(player.dir), dirY = Math.sin(player.dir);
-  let mvx = 0, mvy = 0;
-  if(keys['w']){ mvx += dirX; mvy += dirY; }
-  if(keys['s']){ mvx -= dirX; mvy -= dirY; }
-  if(keys['a']){ mvx += dirY; mvy -= dirX; }
-  if(keys['d']){ mvx -= dirY; mvy += dirX; }
+    const dirX = Math.cos(player.dir), dirY = Math.sin(player.dir);
+    let mvx = 0, mvy = 0;
+    if(keys['w']){ mvx += dirX; mvy += dirY; }
+    if(keys['s']){ mvx -= dirX; mvy -= dirY; }
+    // A/D and Q/E both strafe
+    if(keys['a'] || keys['q']){ mvx += dirY; mvy -= dirX; }
+    if(keys['d'] || keys['e']){ mvx -= dirY; mvy += dirX; }
 
-  const mlen = Math.hypot(mvx,mvy);
-  if(mlen > 0){
-    mvx = mvx/mlen*MOVE_SPEED*dt;
-    mvy = mvy/mlen*MOVE_SPEED*dt;
-    const margin = 0.2;
-    if(!isSolid(Math.floor(player.x+mvx+Math.sign(mvx)*margin), Math.floor(player.y))) player.x += mvx;
-    if(!isSolid(Math.floor(player.x), Math.floor(player.y+mvy+Math.sign(mvy)*margin))) player.y += mvy;
+    const mlen = Math.hypot(mvx,mvy);
+    if(mlen > 0){
+      mvx = mvx/mlen*MOVE_SPEED*dt;
+      mvy = mvy/mlen*MOVE_SPEED*dt;
+      const margin = 0.18;
+      if(!isSolid(Math.floor(player.x+mvx+Math.sign(mvx)*margin), Math.floor(player.y))) player.x += mvx;
+      if(!isSolid(Math.floor(player.x), Math.floor(player.y+mvy+Math.sign(mvy)*margin))) player.y += mvy;
+    }
+
+    tryPortal();
+    checkFinish();
   }
 
-  tryPortal();
-
+  const L = LEVELS[currentLevel];
   dbgEl.textContent =
-`pos: ${player.x.toFixed(2)}, ${player.y.toFixed(2)}  dir: ${player.dir.toFixed(2)}
-cell(${Math.floor(player.x)},${Math.floor(player.y)})  portals: orange on minimap`;
+`[${currentLevel+1}] ${L.name}\npos ${player.x.toFixed(2)},${player.y.toFixed(2)}  dir ${player.dir.toFixed(2)}\nportals orange · finish gold`;
 
   renderFrame();
   drawMinimap();
@@ -491,10 +737,13 @@ function startGame(){
   document.getElementById('title').style.display = 'none';
   requestAnimationFrame(loop);
 }
-window.addEventListener('keydown', e => {
-  if(e.key.toLowerCase() === 'm') showMinimap = !showMinimap;
-  if(e.key.toLowerCase() === 'v') ANAGLYPH = !ANAGLYPH;
-});
+function showTitle(){
+  started = false;
+  finished = false;
+  document.getElementById('win').style.display = 'none';
+  document.getElementById('title').style.display = 'flex';
+  rainTimer = setInterval(drawRain, 45);
+}
 </script>
 </body>
 </html>
