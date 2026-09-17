@@ -12,6 +12,7 @@
     --amber:#7dffa0;
     --portal:#ff6a39;
     --finish:#ffd700;
+    --ctrl-h: 148px;
   }
   html,body{
     margin:0; padding:0; height:100%; background:var(--bg);
@@ -22,86 +23,108 @@
   }
   #wrap{
     position:relative; width:100vw; height:100vh;
-    display:flex; align-items:center; justify-content:center;
-    flex-direction:column;
+    display:flex; flex-direction:column;
+    align-items:center;
     touch-action:none;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    box-sizing:border-box;
   }
-  canvas{
+  #playArea{
+    flex:1 1 auto;
+    min-height:0;
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    padding:8px 8px 4px 8px;
+    box-sizing:border-box;
+  }
+  #stage{
+    position:relative;
+    width:min(96vw, 900px);
+    max-height:100%;
+    line-height:0;
+  }
+  #game{
+    width:100%;
+    height:auto;
+    max-height:calc(100vh - var(--ctrl-h) - 24px);
+    display:block;
     image-rendering:pixelated;
     background:#000;
     box-shadow:0 0 40px rgba(57,255,106,0.25), inset 0 0 60px rgba(0,0,0,0.9);
     border:1px solid var(--glow-dim);
-  }
-  #game{
-    height:auto;
     touch-action:none;
   }
-  #stage{
-    position:relative;
-    display:inline-block;
-    width:min(96vw, 900px);
-    line-height:0;
-  }
-  #stage #game{
+  #controlBar{
+    flex:0 0 var(--ctrl-h);
     width:100%;
-    height:auto;
-    display:block;
-  }
-  #touchpad{
-    position:absolute; left:0; right:0; bottom:0;
-    display:flex; justify-content:space-between; align-items:flex-end;
-    padding:6px 8px 8px 8px; z-index:30;
-    pointer-events:none;
+    max-width:900px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:8px 12px 12px 12px;
     box-sizing:border-box;
+    background:linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.35));
+    border-top:1px solid var(--glow-dim);
+    z-index:30;
   }
-  #touchpad.hidden{ display:none !important; }
-  .padgroup{ display:grid; gap:8px; pointer-events:auto; }
+  #controlBar.hidden{ display:none; }
+  .padgroup{ display:grid; gap:6px; }
   #movepad{
-    grid-template-columns:60px 60px 60px;
-    grid-template-rows:60px 60px 60px;
+    grid-template-columns:54px 54px 54px;
+    grid-template-rows:54px 54px;
   }
   #movepad .btn[data-key="w"]{ grid-column:2; grid-row:1; }
   #movepad .btn[data-key="a"]{ grid-column:1; grid-row:2; }
   #movepad .btn[data-key="s"]{ grid-column:2; grid-row:2; }
   #movepad .btn[data-key="d"]{ grid-column:3; grid-row:2; }
   #turnpad{
-    grid-template-columns:60px 60px;
-    grid-template-rows:60px 60px;
+    grid-template-columns:54px 54px;
+    grid-template-rows:54px 54px;
   }
   #turnpad .btn[data-key="arrowleft"]{ grid-column:1; grid-row:1; }
   #turnpad .btn[data-key="arrowright"]{ grid-column:2; grid-row:1; }
   #turnpad .btn[data-key="q"]{ grid-column:1; grid-row:2; }
   #turnpad .btn[data-key="e"]{ grid-column:2; grid-row:2; }
   .btn{
-    width:60px; height:60px; border-radius:12px;
-    background:rgba(8,40,20,0.92); border:2px solid var(--glow);
-    color:var(--glow); font-size:12px; font-family:'Courier New',monospace;
+    width:54px; height:54px; border-radius:10px;
+    background:rgba(8,40,20,0.95); border:2px solid var(--glow);
+    color:var(--glow); font-size:11px; font-family:'Courier New',monospace;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
-    text-shadow:0 0 6px var(--glow); box-shadow:0 0 16px rgba(57,255,106,0.35);
-    -webkit-tap-highlight-color:transparent; line-height:1.15; gap:1px;
+    text-shadow:0 0 6px var(--glow); box-shadow:0 0 12px rgba(57,255,106,0.3);
+    -webkit-tap-highlight-color:transparent; line-height:1.1; gap:1px;
     cursor:pointer; user-select:none;
   }
-  .btn .ico{ font-size:18px; }
+  .btn .ico{ font-size:16px; }
   .btn.active{ background:rgba(57,255,106,0.4); border-color:var(--amber); }
-  #sideBtns{
-    position:absolute; z-index:31; right:8px; top:150px;
-    display:flex; flex-direction:column; gap:6px; pointer-events:auto;
-  }
-  #sideBtns button{
-    width:48px; height:34px; border-radius:6px; font-size:11px;
-    background:rgba(12,58,28,0.85); border:1px solid var(--glow); color:var(--glow);
-    -webkit-tap-highlight-color:transparent; font-family:inherit; cursor:pointer;
-  }
   #hud{
-    position:absolute; top:8px; left:8px; font-size:11px;
+    position:absolute; top:10px; left:12px; font-size:11px;
     color:var(--glow); text-shadow:0 0 4px var(--glow);
     letter-spacing:0.5px; pointer-events:none; opacity:0.9;
-    max-width:55vw;
+    max-width:50vw; z-index:15;
   }
   #hud .k{color:var(--amber)}
   #minimap{
-    position:absolute; top:8px; right:8px; z-index:20;
-    background:rgba(0,10,3,0.7); border:1px solid var(--glow-dim);
+    position:absolute; top:10px; right:12px; z-index:15;
+    width:100px; height:100px;
+    background:rgba(0,10,3,0.75); border:1px solid var(--glow-dim);
+  }
+  #sideBtns{
+    position:absolute; z-index:16; right:12px; top:118px;
+    display:flex; flex-direction:column; gap:5px; pointer-events:auto;
+  }
+  #sideBtns button{
+    width:42px; height:28px; border-radius:5px; font-size:10px;
+    background:rgba(12,58,28,0.9); border:1px solid var(--glow); color:var(--glow);
+    -webkit-tap-highlight-color:transparent; font-family:inherit; cursor:pointer;
+  }
+  #debug{
+    position:absolute; bottom:6px; left:12px; z-index:15;
+    font-size:10px; color:#7dffa0; background:rgba(0,0,0,0.55);
+    padding:3px 6px; border-radius:4px; pointer-events:none;
+    white-space:pre; line-height:1.35;
   }
   #title{
     position:absolute; inset:0; background:#000; z-index:40;
@@ -142,12 +165,6 @@
     color:var(--glow); padding:10px 18px; border-radius:8px;
     font-family:inherit; font-size:14px; cursor:pointer; margin:4px;
   }
-  #debug{
-    position:absolute; bottom:4px; left:4px; z-index:4;
-    font-size:10px; color:#7dffa0; background:rgba(0,0,0,0.55);
-    padding:3px 6px; border-radius:4px; pointer-events:none;
-    white-space:pre; line-height:1.35;
-  }
 </style>
 </head>
 <body>
@@ -171,34 +188,37 @@
     </div>
   </div>
 
-  <div id="stage">
-    <canvas id="game" width="900" height="540"></canvas>
-    <div id="touchpad">
-      <div id="movepad" class="padgroup">
-        <div class="btn" data-key="w"><span class="ico">↑</span>FWD</div>
-        <div class="btn" data-key="a"><span class="ico">←</span>STR L</div>
-        <div class="btn" data-key="s"><span class="ico">↓</span>BACK</div>
-        <div class="btn" data-key="d"><span class="ico">→</span>STR R</div>
-      </div>
-      <div id="turnpad" class="padgroup">
-        <div class="btn" data-key="arrowleft"><span class="ico">↺</span>TURN L</div>
-        <div class="btn" data-key="arrowright"><span class="ico">↻</span>TURN R</div>
-        <div class="btn" data-key="q"><span class="ico">◧</span>STR L</div>
-        <div class="btn" data-key="e"><span class="ico">◨</span>STR R</div>
-      </div>
+  <div id="playArea">
+    <div id="stage">
+      <canvas id="game" width="900" height="540"></canvas>
+    </div>
+    <div id="hud">
+      <span class="k">WASD</span> move &nbsp; <span class="k">←→</span> turn &nbsp; <span class="k">Q E</span> strafe &nbsp; <span class="k">M</span> map &nbsp; <span class="k">V</span> 3D &nbsp; <span class="k">1-4</span> level
+    </div>
+    <canvas id="minimap" width="100" height="100"></canvas>
+    <div id="sideBtns">
+      <button id="mmBtn">MAP</button>
+      <button id="stereoBtn">3D</button>
+      <button id="levelBtn">LVL</button>
+      <button id="padBtn">PAD</button>
+    </div>
+    <div id="debug"></div>
+  </div>
+
+  <div id="controlBar">
+    <div id="movepad" class="padgroup">
+      <div class="btn" data-key="w"><span class="ico">↑</span>FWD</div>
+      <div class="btn" data-key="a"><span class="ico">←</span>STR L</div>
+      <div class="btn" data-key="s"><span class="ico">↓</span>BACK</div>
+      <div class="btn" data-key="d"><span class="ico">→</span>STR R</div>
+    </div>
+    <div id="turnpad" class="padgroup">
+      <div class="btn" data-key="arrowleft"><span class="ico">↺</span>TURN L</div>
+      <div class="btn" data-key="arrowright"><span class="ico">↻</span>TURN R</div>
+      <div class="btn" data-key="q"><span class="ico">◧</span>STR L</div>
+      <div class="btn" data-key="e"><span class="ico">◨</span>STR R</div>
     </div>
   </div>
-  <div id="hud">
-    <span class="k">WASD</span> move &nbsp; <span class="k">←→</span> turn &nbsp; <span class="k">Q E</span> strafe &nbsp; <span class="k">M</span> map &nbsp; <span class="k">V</span> 3D &nbsp; <span class="k">1-4</span> level
-  </div>
-  <canvas id="minimap" width="150" height="150"></canvas>
-  <div id="sideBtns">
-    <button id="mmBtn">MAP</button>
-    <button id="stereoBtn">3D</button>
-    <button id="levelBtn">LVL</button>
-    <button id="padBtn">PAD</button>
-  </div>
-  <div id="debug"></div>
 </div>
 
 <script>
@@ -420,7 +440,7 @@ document.getElementById('title').addEventListener('touchstart', e => {
   e.preventDefault(); startGame();
 }, {passive:false});
 
-const padButtons = Array.from(document.querySelectorAll('#touchpad .btn'));
+const padButtons = Array.from(document.querySelectorAll('#controlBar .btn'));
 const activePadKeys = new Set();
 function setPadKey(key, down){
   if(down) activePadKeys.add(key); else activePadKeys.delete(key);
@@ -452,7 +472,7 @@ document.addEventListener('touchmove', e => {
   if(!started) return;
   if([...e.touches].some(t => {
     const el = document.elementFromPoint(t.clientX, t.clientY);
-    return el && el.closest && el.closest('#touchpad');
+    return el && el.closest && el.closest('#controlBar');
   })){
     updatePadFromPoints(touchPoints(e));
     e.preventDefault();
@@ -466,11 +486,11 @@ document.getElementById('stereoBtn').addEventListener('touchstart', e => { e.pre
 document.getElementById('levelBtn').addEventListener('click', () => { showTitle(); });
 document.getElementById('levelBtn').addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); showTitle(); }, {passive:false});
 document.getElementById('padBtn').addEventListener('click', () => {
-  document.getElementById('touchpad').classList.toggle('hidden');
+  document.getElementById('controlBar').classList.toggle('hidden');
 });
 document.getElementById('padBtn').addEventListener('touchstart', e => {
   e.preventDefault(); e.stopPropagation();
-  document.getElementById('touchpad').classList.toggle('hidden');
+  document.getElementById('controlBar').classList.toggle('hidden');
 }, {passive:false});
 
 document.getElementById('winNext').addEventListener('click', () => { loadLevel(currentLevel+1); });
