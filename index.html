@@ -33,15 +33,26 @@
     border:1px solid var(--glow-dim);
   }
   #game{
-    width:min(96vw, 900px);
     height:auto;
     touch-action:none;
+  }
+  #stage{
+    position:relative;
+    display:inline-block;
+    width:min(96vw, 900px);
+    line-height:0;
+  }
+  #stage #game{
+    width:100%;
+    height:auto;
+    display:block;
   }
   #touchpad{
     position:absolute; left:0; right:0; bottom:0;
     display:flex; justify-content:space-between; align-items:flex-end;
-    padding:0 12px max(16px, env(safe-area-inset-bottom)); z-index:30;
+    padding:6px 8px 8px 8px; z-index:30;
     pointer-events:none;
+    box-sizing:border-box;
   }
   #touchpad.hidden{ display:none !important; }
   .padgroup{ display:grid; gap:8px; pointer-events:auto; }
@@ -160,7 +171,23 @@
     </div>
   </div>
 
-  <canvas id="game" width="900" height="540"></canvas>
+  <div id="stage">
+    <canvas id="game" width="900" height="540"></canvas>
+    <div id="touchpad">
+      <div id="movepad" class="padgroup">
+        <div class="btn" data-key="w"><span class="ico">↑</span>FWD</div>
+        <div class="btn" data-key="a"><span class="ico">←</span>STR L</div>
+        <div class="btn" data-key="s"><span class="ico">↓</span>BACK</div>
+        <div class="btn" data-key="d"><span class="ico">→</span>STR R</div>
+      </div>
+      <div id="turnpad" class="padgroup">
+        <div class="btn" data-key="arrowleft"><span class="ico">↺</span>TURN L</div>
+        <div class="btn" data-key="arrowright"><span class="ico">↻</span>TURN R</div>
+        <div class="btn" data-key="q"><span class="ico">◧</span>STR L</div>
+        <div class="btn" data-key="e"><span class="ico">◨</span>STR R</div>
+      </div>
+    </div>
+  </div>
   <div id="hud">
     <span class="k">WASD</span> move &nbsp; <span class="k">←→</span> turn &nbsp; <span class="k">Q E</span> strafe &nbsp; <span class="k">M</span> map &nbsp; <span class="k">V</span> 3D &nbsp; <span class="k">1-4</span> level
   </div>
@@ -172,21 +199,6 @@
     <button id="padBtn">PAD</button>
   </div>
   <div id="debug"></div>
-
-  <div id="touchpad">
-    <div id="movepad" class="padgroup">
-      <div class="btn" data-key="w"><span class="ico">↑</span>FWD</div>
-      <div class="btn" data-key="a"><span class="ico">←</span>STR L</div>
-      <div class="btn" data-key="s"><span class="ico">↓</span>BACK</div>
-      <div class="btn" data-key="d"><span class="ico">→</span>STR R</div>
-    </div>
-    <div id="turnpad" class="padgroup">
-      <div class="btn" data-key="arrowleft"><span class="ico">↺</span>TURN L</div>
-      <div class="btn" data-key="arrowright"><span class="ico">↻</span>TURN R</div>
-      <div class="btn" data-key="q"><span class="ico">◧</span>STR L</div>
-      <div class="btn" data-key="e"><span class="ico">◨</span>STR R</div>
-    </div>
-  </div>
 </div>
 
 <script>
