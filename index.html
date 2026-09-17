@@ -37,54 +37,50 @@
     height:auto;
     touch-action:none;
   }
-  /* ---- improved touch controls ---- */
   #touchpad{
     position:absolute; left:0; right:0; bottom:0;
-    display:none; justify-content:space-between; align-items:flex-end;
-    padding:0 10px 12px 10px; z-index:5; pointer-events:none;
+    display:flex; justify-content:space-between; align-items:flex-end;
+    padding:0 12px max(16px, env(safe-area-inset-bottom)); z-index:30;
+    pointer-events:none;
   }
+  #touchpad.hidden{ display:none !important; }
   .padgroup{ display:grid; gap:8px; pointer-events:auto; }
   #movepad{
-    grid-template-columns:58px 58px 58px;
-    grid-template-rows:58px 58px 58px;
+    grid-template-columns:60px 60px 60px;
+    grid-template-rows:60px 60px 60px;
   }
   #movepad .btn[data-key="w"]{ grid-column:2; grid-row:1; }
   #movepad .btn[data-key="a"]{ grid-column:1; grid-row:2; }
   #movepad .btn[data-key="s"]{ grid-column:2; grid-row:2; }
   #movepad .btn[data-key="d"]{ grid-column:3; grid-row:2; }
   #turnpad{
-    grid-template-columns:58px 58px;
-    grid-template-rows:58px 58px;
+    grid-template-columns:60px 60px;
+    grid-template-rows:60px 60px;
   }
   #turnpad .btn[data-key="arrowleft"]{ grid-column:1; grid-row:1; }
   #turnpad .btn[data-key="arrowright"]{ grid-column:2; grid-row:1; }
   #turnpad .btn[data-key="q"]{ grid-column:1; grid-row:2; }
   #turnpad .btn[data-key="e"]{ grid-column:2; grid-row:2; }
   .btn{
-    width:58px; height:58px; border-radius:12px;
-    background:rgba(12,58,28,0.7); border:1px solid var(--glow);
-    color:var(--glow); font-size:13px; font-family:'Courier New',monospace;
+    width:60px; height:60px; border-radius:12px;
+    background:rgba(8,40,20,0.92); border:2px solid var(--glow);
+    color:var(--glow); font-size:12px; font-family:'Courier New',monospace;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
-    text-shadow:0 0 6px var(--glow); box-shadow:0 0 12px rgba(57,255,106,0.2);
+    text-shadow:0 0 6px var(--glow); box-shadow:0 0 16px rgba(57,255,106,0.35);
     -webkit-tap-highlight-color:transparent; line-height:1.15; gap:1px;
+    cursor:pointer; user-select:none;
   }
   .btn .ico{ font-size:18px; }
   .btn.active{ background:rgba(57,255,106,0.4); border-color:var(--amber); }
   #sideBtns{
-    position:absolute; z-index:6; right:8px; top:150px;
+    position:absolute; z-index:31; right:8px; top:150px;
     display:flex; flex-direction:column; gap:6px; pointer-events:auto;
   }
   #sideBtns button{
     width:48px; height:34px; border-radius:6px; font-size:11px;
-    background:rgba(12,58,28,0.65); border:1px solid var(--glow-dim); color:var(--glow);
-    -webkit-tap-highlight-color:transparent; font-family:inherit;
+    background:rgba(12,58,28,0.85); border:1px solid var(--glow); color:var(--glow);
+    -webkit-tap-highlight-color:transparent; font-family:inherit; cursor:pointer;
   }
-  @media (pointer:coarse){
-    #touchpad{ display:flex; }
-    #hud{ display:none; }
-  }
-  body.force-touch #touchpad{ display:flex !important; }
-  body.force-touch #hud{ display:none; }
   #hud{
     position:absolute; top:8px; left:8px; font-size:11px;
     color:var(--glow); text-shadow:0 0 4px var(--glow);
@@ -93,11 +89,11 @@
   }
   #hud .k{color:var(--amber)}
   #minimap{
-    position:absolute; top:8px; right:8px;
+    position:absolute; top:8px; right:8px; z-index:20;
     background:rgba(0,10,3,0.7); border:1px solid var(--glow-dim);
   }
   #title{
-    position:absolute; inset:0; background:#000; z-index:10;
+    position:absolute; inset:0; background:#000; z-index:40;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     cursor:pointer; padding:12px;
   }
@@ -124,7 +120,7 @@
   @keyframes blink{50%{opacity:0}}
   #rain{position:absolute; inset:0; z-index:1}
   #win{
-    position:absolute; inset:0; background:rgba(0,0,0,0.85); z-index:15;
+    position:absolute; inset:0; background:rgba(0,0,0,0.85); z-index:50;
     display:none; flex-direction:column; align-items:center; justify-content:center;
     color:var(--finish); text-align:center; padding:20px;
   }
@@ -173,6 +169,7 @@
     <button id="mmBtn">MAP</button>
     <button id="stereoBtn">3D</button>
     <button id="levelBtn">LVL</button>
+    <button id="padBtn">PAD</button>
   </div>
   <div id="debug"></div>
 
@@ -193,11 +190,9 @@
 </div>
 
 <script>
-/* 22 standard Hebrew letters — no finals */
 const HEB = 'אבגדהוזחטיכלמנסעפצקרשת';
 function glyphFor(seed){ return HEB[Math.abs(seed|0) % HEB.length]; }
 
-/* ---------- Title rain ---------- */
 const rainCv = document.getElementById('rain');
 const rctx = rainCv.getContext('2d');
 function sizeRain(){ rainCv.width = window.innerWidth; rainCv.height = window.innerHeight; }
@@ -223,14 +218,6 @@ function drawRain(){
 }
 let rainTimer = setInterval(drawRain, 45);
 
-/* ============================================================
-   LEVEL DATA — custom non-Euclidean mazes
-   Map codes:
-     0 open
-     1 solid wall
-     2+ portal pair ids (even/odd partners defined in portals)
-     9 finish line
-   ============================================================ */
 const LEVELS = [
   {
     name: "Shuk Loop",
@@ -255,7 +242,6 @@ const LEVELS = [
       "1000000000009001",
       "1111111111111111"
     ],
-    // place portals after parse
     portalCells: [[3,4,2],[12,8,3],[7,2,4],[7,14,5]],
     portals: {
       2: { x:3.5, y:4.5, partner:3, exitDir: Math.PI },
@@ -288,7 +274,7 @@ const LEVELS = [
     }
   },
   {
-    name: "Möbius Corridor",
+    name: "Mobius Corridor",
     desc: "Walking the loop flips you to the other side",
     start: { x: 2.5, y: 4.5, dir: 0 },
     map: [
@@ -353,7 +339,6 @@ const LEVELS = [
   }
 ];
 
-/* Runtime level state */
 let currentLevel = 0;
 let MAP = [];
 let MAPW = 0, MAPH = 0;
@@ -368,7 +353,6 @@ function loadLevel(idx){
   currentLevel = ((idx % LEVELS.length) + LEVELS.length) % LEVELS.length;
   const L = LEVELS[currentLevel];
   MAP = L.map.map(row => row.split('').map(Number));
-  // apply portal cell overrides
   for(const [x,y,id] of L.portalCells){
     if(MAP[y] && MAP[y][x] !== undefined) MAP[y][x] = id;
   }
@@ -381,7 +365,6 @@ function loadLevel(idx){
   portalCooldown = 0;
   finished = false;
   document.getElementById('win').style.display = 'none';
-  // highlight selected button
   document.querySelectorAll('#levelSelect button').forEach((b,i)=>{
     b.classList.toggle('active', i === currentLevel);
   });
@@ -391,32 +374,23 @@ function cellType(x,y){
   if(x<0||y<0||x>=MAPW||y>=MAPH) return 1;
   return MAP[y][x];
 }
-function isSolid(x,y){
-  return cellType(x,y) === 1;
-}
+function isSolid(x,y){ return cellType(x,y) === 1; }
 function isPortal(x,y){
   const t = cellType(x,y);
   return (t >= 2 && t !== 9) ? t : 0;
 }
-function isFinish(x,y){
-  return cellType(x,y) === 9;
-}
+function isFinish(x,y){ return cellType(x,y) === 9; }
 
-/* Build level select UI */
 const levelSelect = document.getElementById('levelSelect');
 LEVELS.forEach((L,i)=>{
   const b = document.createElement('button');
-  b.textContent = `${i+1}. ${L.name}`;
+  b.textContent = (i+1) + '. ' + L.name;
   b.title = L.desc;
-  b.addEventListener('click', e => {
-    e.stopPropagation();
-    loadLevel(i);
-  });
+  b.addEventListener('click', e => { e.stopPropagation(); loadLevel(i); });
   levelSelect.appendChild(b);
 });
 loadLevel(0);
 
-/* ---------- Input ---------- */
 const keys = {};
 window.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
@@ -434,41 +408,44 @@ document.getElementById('title').addEventListener('touchstart', e => {
   e.preventDefault(); startGame();
 }, {passive:false});
 
-/* Touch / mouse pad */
 const padButtons = Array.from(document.querySelectorAll('#touchpad .btn'));
+const activePadKeys = new Set();
+function setPadKey(key, down){
+  if(down) activePadKeys.add(key); else activePadKeys.delete(key);
+  keys[key] = activePadKeys.has(key);
+  padButtons.forEach(b => b.classList.toggle('active', activePadKeys.has(b.dataset.key)));
+}
+padButtons.forEach(btn => {
+  const key = btn.dataset.key;
+  const down = e => { e.preventDefault(); e.stopPropagation(); if(!started) startGame(); setPadKey(key, true); };
+  const up = e => { e.preventDefault(); e.stopPropagation(); setPadKey(key, false); };
+  btn.addEventListener('mousedown', down);
+  btn.addEventListener('mouseup', up);
+  btn.addEventListener('mouseleave', up);
+  btn.addEventListener('touchstart', down, {passive:false});
+  btn.addEventListener('touchend', up, {passive:false});
+  btn.addEventListener('touchcancel', up, {passive:false});
+});
 function updatePadFromPoints(points){
   padButtons.forEach(btn => {
     const r = btn.getBoundingClientRect();
     const pressed = points.some(p => p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom);
-    keys[btn.dataset.key] = pressed;
-    btn.classList.toggle('active', pressed);
+    setPadKey(btn.dataset.key, pressed);
   });
 }
 function touchPoints(e){
   return Array.from(e.touches || []).map(t => ({x:t.clientX, y:t.clientY}));
 }
-document.addEventListener('touchstart', e => {
+document.addEventListener('touchmove', e => {
   if(!started) return;
-  updatePadFromPoints(touchPoints(e));
-  e.preventDefault();
+  if([...e.touches].some(t => {
+    const el = document.elementFromPoint(t.clientX, t.clientY);
+    return el && el.closest && el.closest('#touchpad');
+  })){
+    updatePadFromPoints(touchPoints(e));
+    e.preventDefault();
+  }
 }, {passive:false});
-document.addEventListener('touchmove', e => { updatePadFromPoints(touchPoints(e)); e.preventDefault(); }, {passive:false});
-document.addEventListener('touchend', e => { updatePadFromPoints(touchPoints(e)); }, {passive:false});
-document.addEventListener('touchcancel', e => { updatePadFromPoints(touchPoints(e)); }, {passive:false});
-
-let mouseHeld = false;
-document.addEventListener('mousedown', e => {
-  if(!started) return;
-  if(e.target.closest('.btn') || e.target.closest('#sideBtns') || e.target.closest('#win')) return;
-  mouseHeld = true;
-  updatePadFromPoints([{x:e.clientX,y:e.clientY}]);
-});
-document.addEventListener('mousemove', e => { if(mouseHeld) updatePadFromPoints([{x:e.clientX,y:e.clientY}]); });
-window.addEventListener('mouseup', () => { mouseHeld = false; updatePadFromPoints([]); });
-
-if('ontouchstart' in window || navigator.maxTouchPoints > 0){
-  document.body.classList.add('force-touch');
-}
 
 document.getElementById('mmBtn').addEventListener('click', () => { showMinimap = !showMinimap; });
 document.getElementById('mmBtn').addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); showMinimap = !showMinimap; }, {passive:false});
@@ -476,12 +453,18 @@ document.getElementById('stereoBtn').addEventListener('click', () => { ANAGLYPH 
 document.getElementById('stereoBtn').addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); ANAGLYPH = !ANAGLYPH; }, {passive:false});
 document.getElementById('levelBtn').addEventListener('click', () => { showTitle(); });
 document.getElementById('levelBtn').addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); showTitle(); }, {passive:false});
+document.getElementById('padBtn').addEventListener('click', () => {
+  document.getElementById('touchpad').classList.toggle('hidden');
+});
+document.getElementById('padBtn').addEventListener('touchstart', e => {
+  e.preventDefault(); e.stopPropagation();
+  document.getElementById('touchpad').classList.toggle('hidden');
+}, {passive:false});
 
 document.getElementById('winNext').addEventListener('click', () => { loadLevel(currentLevel+1); });
 document.getElementById('winRetry').addEventListener('click', () => { loadLevel(currentLevel); });
 document.getElementById('winMenu').addEventListener('click', () => { showTitle(); });
 
-/* ---------- Rendering ---------- */
 const cv = document.getElementById('game');
 const ctx = cv.getContext('2d');
 const ROWS = 60;
@@ -505,38 +488,28 @@ function castRay(ox, oy, rdx, rdy, maxSteps){
   else { stepX = 1; sideDistX = (mapX + 1 - ox) * deltaDistX; }
   if(rdy < 0){ stepY = -1; sideDistY = (oy - mapY) * deltaDistY; }
   else { stepY = 1; sideDistY = (mapY + 1 - oy) * deltaDistY; }
-
   let hit = 0, side = 0, dist = 0, guard = 0;
   let px = ox, py = oy;
   let prdx = rdx, prdy = rdy;
   let isFinishHit = false;
-
   while(hit === 0 && guard < maxSteps){
-    if(sideDistX < sideDistY){
-      sideDistX += deltaDistX; mapX += stepX; side = 0;
-    } else {
-      sideDistY += deltaDistY; mapY += stepY; side = 1;
-    }
+    if(sideDistX < sideDistY){ sideDistX += deltaDistX; mapX += stepX; side = 0; }
+    else { sideDistY += deltaDistY; mapY += stepY; side = 1; }
     const t = cellType(mapX, mapY);
     if(t === 1){
       hit = 1;
       dist = side === 0 ? (sideDistX - deltaDistX) : (sideDistY - deltaDistY);
     } else if(t === 9){
-      // finish line treated as a soft wall for visual, but walkable for player
-      hit = 1;
-      isFinishHit = true;
+      hit = 1; isFinishHit = true;
       dist = side === 0 ? (sideDistX - deltaDistX) : (sideDistY - deltaDistY);
     } else if(t >= 2 && PORTALS[t]){
       const src = PORTALS[t];
       const dst = PORTALS[src.partner];
       if(!dst){ hit = 1; dist = 0.5; break; }
       const outDir = dst.exitDir;
-      prdx = Math.cos(outDir);
-      prdy = Math.sin(outDir);
-      px = dst.x + prdx * 0.35;
-      py = dst.y + prdy * 0.35;
-      mapX = Math.floor(px);
-      mapY = Math.floor(py);
+      prdx = Math.cos(outDir); prdy = Math.sin(outDir);
+      px = dst.x + prdx * 0.35; py = dst.y + prdy * 0.35;
+      mapX = Math.floor(px); mapY = Math.floor(py);
       if(prdx < 0){ stepX = -1; sideDistX = (px - mapX) * deltaDistX; }
       else { stepX = 1; sideDistX = (mapX + 1 - px) * deltaDistX; }
       if(prdy < 0){ stepY = -1; sideDistY = (py - mapY) * deltaDistY; }
@@ -550,86 +523,75 @@ function castRay(ox, oy, rdx, rdy, maxSteps){
 }
 
 function renderFrame(){
-  ctx.font = `${CELL+1}px 'Courier New', monospace`;
+  ctx.font = (CELL+1) + "px 'Courier New', monospace";
   ctx.clearRect(0,0,cv.width,cv.height);
   ctx.fillStyle = '#020402';
   ctx.fillRect(0,0,cv.width,cv.height*0.5);
   ctx.fillStyle = '#050805';
   ctx.fillRect(0,cv.height*0.5,cv.width,cv.height*0.5);
-
   const planeLen = Math.tan(player.fov/2);
   const dirX = Math.cos(player.dir), dirY = Math.sin(player.dir);
   const planeX = -dirY*planeLen, planeY = dirX*planeLen;
   const maxDist = 12;
-
   for(let col=0; col<COLS; col++){
     const camX = 2*col/COLS - 1;
     const rdx = dirX + planeX*camX;
     const rdy = dirY + planeY*camX;
     const { dist: perpDist, side, mapX, mapY, isFinishHit } = castRay(player.x, player.y, rdx, rdy, 90);
-
     const lineHeight = Math.floor(ROWS / perpDist);
     let drawStart = Math.floor(-lineHeight/2 + ROWS/2);
     let drawEnd = Math.floor(lineHeight/2 + ROWS/2);
     if(drawStart < 0) drawStart = 0;
     if(drawEnd >= ROWS) drawEnd = ROWS-1;
-
     let bright = Math.max(0, 1 - perpDist/maxDist);
     if(side === 1) bright *= 0.65;
-
     const colX = col*CELL;
     const disparity = ANAGLYPH ? MAX_DISPARITY_PX * Math.max(0, 1 - perpDist/5) : 0;
-
-    // ceiling ambient
     for(let row=0; row<drawStart; row++){
       const skyFactor = (row/ROWS) * 0.4;
       if(Math.random() < 0.05 + skyFactor*0.04){
         const seed3 = col*11 + row*23 + Math.floor(flickerFrame/4) + mapX;
         const sb = 0.15 + skyFactor;
-        ctx.fillStyle = `rgb(0,${Math.floor(sb*150)+10},${Math.floor(sb*130)+10})`;
+        ctx.fillStyle = 'rgb(0,' + (Math.floor(sb*150)+10) + ',' + (Math.floor(sb*130)+10) + ')';
         ctx.fillText(glyphFor(seed3), colX, row*CELL);
       }
     }
-
     for(let row = drawStart; row <= drawEnd; row++){
       const seed = mapX*131 + mapY*337 + row*17 + Math.floor(flickerFrame + (mapX+mapY)*3) % 5;
       const ch = glyphFor(seed);
       const g = Math.floor(bright*220)+15;
-
       if(isFinishHit){
-        // gold-tinted finish wall
         const gold = Math.floor(bright*200)+40;
         if(ANAGLYPH){
           ctx.globalCompositeOperation = 'lighter';
-          ctx.fillStyle = `rgb(${gold},0,0)`;
+          ctx.fillStyle = 'rgb(' + gold + ',0,0)';
           ctx.fillText(ch, colX - disparity/2, row*CELL);
-          ctx.fillStyle = `rgb(0,${Math.floor(gold*0.9)},${Math.floor(gold*0.2)})`;
+          ctx.fillStyle = 'rgb(0,' + Math.floor(gold*0.9) + ',' + Math.floor(gold*0.2) + ')';
           ctx.fillText(ch, colX + disparity/2, row*CELL);
           ctx.globalCompositeOperation = 'source-over';
         } else {
-          ctx.fillStyle = `rgb(${gold},${Math.floor(gold*0.85)},${Math.floor(gold*0.2)})`;
+          ctx.fillStyle = 'rgb(' + gold + ',' + Math.floor(gold*0.85) + ',' + Math.floor(gold*0.2) + ')';
           ctx.fillText(ch, colX, row*CELL);
         }
       } else if(ANAGLYPH){
         ctx.globalCompositeOperation = 'lighter';
-        ctx.fillStyle = `rgb(${Math.floor(bright*230)+10},0,0)`;
+        ctx.fillStyle = 'rgb(' + (Math.floor(bright*230)+10) + ',0,0)';
         ctx.fillText(ch, colX - disparity/2, row*CELL);
-        ctx.fillStyle = `rgb(0,${g},${Math.floor(bright*180)+10})`;
+        ctx.fillStyle = 'rgb(0,' + g + ',' + (Math.floor(bright*180)+10) + ')';
         ctx.fillText(ch, colX + disparity/2, row*CELL);
         ctx.globalCompositeOperation = 'source-over';
       } else {
         const r = Math.floor(bright*40);
-        ctx.fillStyle = `rgb(${r},${g},${Math.floor(bright*90)})`;
+        ctx.fillStyle = 'rgb(' + r + ',' + g + ',' + Math.floor(bright*90) + ')';
         ctx.fillText(ch, colX, row*CELL);
       }
     }
-
     for(let row = drawEnd+1; row < ROWS; row++){
       const rowDist = ROWS / (2*row - ROWS + 0.001);
       const fb = Math.max(0, 1 - Math.abs(rowDist)/maxDist) * 0.5;
       if(Math.random() < 0.12){
         const seed2 = col*7 + row*29 + Math.floor(flickerFrame/3);
-        ctx.fillStyle = `rgb(0,${Math.floor(fb*160)+10},${Math.floor(fb*40)})`;
+        ctx.fillStyle = 'rgb(0,' + (Math.floor(fb*160)+10) + ',' + (Math.floor(fb*40)) + ')';
         ctx.fillText(glyphFor(seed2), colX, row*CELL);
       }
     }
@@ -670,9 +632,7 @@ function tryPortal(){
     const src = PORTALS[pid];
     const dst = PORTALS[src.partner];
     if(dst){
-      player.x = dst.x;
-      player.y = dst.y;
-      player.dir = dst.exitDir;
+      player.x = dst.x; player.y = dst.y; player.dir = dst.exitDir;
       portalCooldown = 0.55;
     }
   }
@@ -683,8 +643,7 @@ function checkFinish(){
   if(isFinish(Math.floor(player.x), Math.floor(player.y))){
     finished = true;
     const L = LEVELS[currentLevel];
-    document.getElementById('winMsg').textContent =
-      `Level “${L.name}” complete. ${L.desc}`;
+    document.getElementById('winMsg').textContent = 'Level "' + L.name + '" complete. ' + L.desc;
     document.getElementById('win').style.display = 'flex';
   }
 }
@@ -694,19 +653,15 @@ function loop(t){
   const dt = Math.min(0.05,(t-lastT)/1000);
   lastT = t;
   if(portalCooldown > 0) portalCooldown -= dt;
-
   if(!finished){
     if(keys['arrowleft']) player.dir -= TURN_SPEED*dt;
     if(keys['arrowright']) player.dir += TURN_SPEED*dt;
-
     const dirX = Math.cos(player.dir), dirY = Math.sin(player.dir);
     let mvx = 0, mvy = 0;
     if(keys['w']){ mvx += dirX; mvy += dirY; }
     if(keys['s']){ mvx -= dirX; mvy -= dirY; }
-    // A/D and Q/E both strafe
     if(keys['a'] || keys['q']){ mvx += dirY; mvy -= dirX; }
     if(keys['d'] || keys['e']){ mvx -= dirY; mvy += dirX; }
-
     const mlen = Math.hypot(mvx,mvy);
     if(mlen > 0){
       mvx = mvx/mlen*MOVE_SPEED*dt;
@@ -715,15 +670,11 @@ function loop(t){
       if(!isSolid(Math.floor(player.x+mvx+Math.sign(mvx)*margin), Math.floor(player.y))) player.x += mvx;
       if(!isSolid(Math.floor(player.x), Math.floor(player.y+mvy+Math.sign(mvy)*margin))) player.y += mvy;
     }
-
     tryPortal();
     checkFinish();
   }
-
   const L = LEVELS[currentLevel];
-  dbgEl.textContent =
-`[${currentLevel+1}] ${L.name}\npos ${player.x.toFixed(2)},${player.y.toFixed(2)}  dir ${player.dir.toFixed(2)}\nportals orange · finish gold`;
-
+  dbgEl.textContent = '[' + (currentLevel+1) + '] ' + L.name + '\npos ' + player.x.toFixed(2) + ',' + player.y.toFixed(2) + '  dir ' + player.dir.toFixed(2) + '\nportals orange · finish gold';
   renderFrame();
   drawMinimap();
   requestAnimationFrame(loop);
