@@ -1,1 +1,160 @@
-LOADING
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>GlyphPortals — Glyphs as Operators on Space</title>
+<style>
+  :root{
+    --bg:#020402; --glow:#39ff6a; --glow-dim:#0c3a1c; --amber:#7dffa0;
+    --portal:#ff6a39; --finish:#ffd700; --ctrl-h:148px;
+  }
+  html,body{margin:0;padding:0;height:100%;background:var(--bg);overflow:hidden;
+    font-family:'Courier New',monospace;color:var(--glow);
+    touch-action:none;-webkit-user-select:none;user-select:none;}
+  #wrap{position:relative;width:100vw;height:100vh;display:flex;flex-direction:column;
+    align-items:center;touch-action:none;padding-bottom:env(safe-area-inset-bottom,0);box-sizing:border-box;}
+  #playArea{flex:1 1 auto;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;
+    position:relative;padding:8px 8px 4px;box-sizing:border-box;}
+  #stage{position:relative;width:min(96vw,900px);max-height:100%;line-height:0;}
+  #game{width:100%;height:auto;max-height:calc(100vh - var(--ctrl-h) - 24px);display:block;
+    image-rendering:pixelated;background:#000;box-shadow:0 0 40px rgba(57,255,106,0.25);
+    border:1px solid var(--glow-dim);touch-action:none;}
+  #controlBar{flex:0 0 var(--ctrl-h);width:100%;max-width:900px;display:flex;justify-content:space-between;
+    align-items:center;padding:8px 12px 12px;box-sizing:border-box;
+    background:linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.35));border-top:1px solid var(--glow-dim);z-index:30;}
+  #controlBar.hidden{display:none;}
+  .padgroup{display:grid;gap:6px;}
+  #movepad{grid-template-columns:54px 54px 54px;grid-template-rows:54px 54px;}
+  #movepad .btn[data-key="w"]{grid-column:2;grid-row:1;}
+  #movepad .btn[data-key="a"]{grid-column:1;grid-row:2;}
+  #movepad .btn[data-key="s"]{grid-column:2;grid-row:2;}
+  #movepad .btn[data-key="d"]{grid-column:3;grid-row:2;}
+  #turnpad{grid-template-columns:54px 54px;grid-template-rows:54px 54px;}
+  #turnpad .btn[data-key="arrowleft"]{grid-column:1;grid-row:1;}
+  #turnpad .btn[data-key="arrowright"]{grid-column:2;grid-row:1;}
+  #turnpad .btn[data-key="q"]{grid-column:1;grid-row:2;}
+  #turnpad .btn[data-key="e"]{grid-column:2;grid-row:2;}
+  .btn{width:54px;height:54px;border-radius:10px;background:rgba(8,40,20,0.95);border:2px solid var(--glow);
+    color:var(--glow);font-size:11px;font-family:inherit;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;text-shadow:0 0 6px var(--glow);cursor:pointer;user-select:none;line-height:1.1;gap:1px;}
+  .btn .ico{font-size:16px;} .btn.active{background:rgba(57,255,106,0.4);border-color:var(--amber);}
+  #hud{position:absolute;top:10px;left:12px;font-size:11px;color:var(--glow);text-shadow:0 0 4px var(--glow);
+    pointer-events:none;opacity:0.9;max-width:48vw;z-index:15;}
+  #hud .k{color:var(--amber)}
+  #minimap{position:absolute;top:10px;right:12px;z-index:15;width:110px;height:110px;
+    background:rgba(0,10,3,0.8);border:1px solid var(--glow-dim);}
+  #sideBtns{position:absolute;z-index:16;right:12px;top:128px;display:flex;flex-direction:column;gap:5px;}
+  #sideBtns button{width:42px;height:28px;border-radius:5px;font-size:10px;background:rgba(12,58,28,0.9);
+    border:1px solid var(--glow);color:var(--glow);font-family:inherit;cursor:pointer;}
+  #debug{position:absolute;bottom:6px;left:12px;z-index:15;font-size:10px;color:#7dffa0;
+    background:rgba(0,0,0,0.55);padding:3px 6px;border-radius:4px;pointer-events:none;white-space:pre;line-height:1.35;}
+  #roomBanner{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:25;
+    font-size:22px;letter-spacing:3px;color:var(--amber);text-shadow:0 0 20px var(--amber);
+    pointer-events:none;opacity:0;transition:opacity 0.3s;text-align:center;background:rgba(0,0,0,0.7);
+    padding:12px 20px;border:1px solid var(--glow-dim);border-radius:6px;}
+  #roomBanner.show{opacity:1;}
+  #historyBar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:15;
+    font-size:13px;color:var(--amber);background:rgba(0,0,0,0.65);padding:4px 12px;border-radius:4px;
+    pointer-events:none;letter-spacing:2px;max-width:90vw;overflow:hidden;white-space:nowrap;}
+  #seedBar{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:15;
+    font-size:11px;color:var(--glow);background:rgba(0,0,0,0.6);padding:3px 10px;border-radius:4px;
+    cursor:pointer;border:1px solid var(--glow-dim);}
+  #title{position:absolute;inset:0;background:#000;z-index:40;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;cursor:pointer;padding:12px;}
+  #title h1{font-size:clamp(28px,6vw,40px);letter-spacing:3px;margin:0 0 8px;text-shadow:0 0 10px var(--glow);z-index:2;}
+  #title .sub{opacity:0.85;margin-bottom:18px;font-size:13px;text-align:center;max-width:92vw;z-index:2;}
+  #levelSelect{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px;z-index:2;max-width:92vw;}
+  #levelSelect button{background:rgba(12,58,28,0.7);border:1px solid var(--glow);color:var(--glow);
+    padding:8px 12px;border-radius:8px;font-family:inherit;font-size:12px;cursor:pointer;}
+  #levelSelect button:hover,#levelSelect button.active{background:rgba(57,255,106,0.3);border-color:var(--amber);}
+  #title .blink{animation:blink 1.2s steps(2) infinite;font-size:13px;color:var(--amber);z-index:2;}
+  @keyframes blink{50%{opacity:0}}
+  #rain{position:absolute;inset:0;z-index:1}
+  #win{position:absolute;inset:0;background:rgba(0,0,0,0.85);z-index:50;display:none;flex-direction:column;
+    align-items:center;justify-content:center;color:var(--finish);text-align:center;padding:20px;}
+  #win h2{font-size:32px;margin:0 0 10px;text-shadow:0 0 16px var(--finish);}
+  #win p{opacity:0.9;margin:0 0 18px;}
+  #win button{background:rgba(12,58,28,0.8);border:1px solid var(--glow);color:var(--glow);
+    padding:10px 18px;border-radius:8px;font-family:inherit;font-size:14px;cursor:pointer;margin:4px;}
+  .panel{position:absolute;inset:0;background:rgba(0,8,4,0.94);z-index:45;display:none;flex-direction:column;
+    padding:20px;overflow:auto;box-sizing:border-box;}
+  .panel.open{display:flex;}
+  .panel h2{margin:0 0 12px;color:var(--amber);letter-spacing:2px;font-size:18px;}
+  .panel .close{align-self:flex-end;margin-bottom:8px;background:rgba(12,58,28,0.8);border:1px solid var(--glow);
+    color:var(--glow);padding:6px 14px;border-radius:6px;font-family:inherit;cursor:pointer;}
+  .glyphCard{border:1px solid var(--glow-dim);padding:10px 12px;margin-bottom:8px;border-radius:6px;background:rgba(0,20,8,0.5);}
+  .glyphCard .big{font-size:28px;color:var(--amber);margin-bottom:4px;}
+  .glyphCard .meta{font-size:12px;opacity:0.85;line-height:1.5;}
+  #topoCanvas{width:100%;max-width:420px;height:280px;background:#000;border:1px solid var(--glow-dim);align-self:center;}
+  #duckOverlay{position:absolute;inset:0;background:#000;z-index:60;display:none;align-items:center;justify-content:center;
+    flex-direction:column;color:#ffd700;font-size:28px;letter-spacing:4px;}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="title">
+    <canvas id="rain"></canvas>
+    <h1>GLYPHPORTALS</h1>
+    <div class="sub">glyphs are operators on space · non-Euclidean raycaster<br>
+    pick a level · seed copies the topology</div>
+    <div id="levelSelect"></div>
+    <div class="blink">press any key or tap to enter</div>
+  </div>
+  <div id="win">
+    <h2>FINISH LINE</h2>
+    <p id="winMsg"></p>
+    <div>
+      <button id="winNext">Next level</button>
+      <button id="winRetry">Retry</button>
+      <button id="winMenu">Level select</button>
+    </div>
+  </div>
+  <div id="duckOverlay"><div>QUACK</div><div style="font-size:14px;margin-top:8px;opacity:0.7">MOVE ALONG.</div></div>
+  <div id="obsPanel" class="panel">
+    <button class="close" id="obsClose">CLOSE</button>
+    <h2>GLYPH INDEX — FIELD NOTEBOOK</h2>
+    <div id="obsBody"></div>
+  </div>
+  <div id="topoPanel" class="panel">
+    <button class="close" id="topoClose">CLOSE</button>
+    <h2>TOPOLOGICAL GRAPH</h2>
+    <p style="font-size:12px;opacity:0.8;margin:0 0 10px">Connections that cannot exist in ordinary Euclidean space.</p>
+    <canvas id="topoCanvas" width="420" height="280"></canvas>
+    <p id="topoWhere" style="font-size:13px;color:var(--amber);margin-top:12px;text-align:center"></p>
+  </div>
+  <div id="playArea">
+    <div id="stage"><canvas id="game" width="900" height="540"></canvas></div>
+    <div id="hud"><span class="k">WASD</span> move · <span class="k">G</span> observatory · <span class="k">T</span> topology · <span class="k">M</span> map</div>
+    <canvas id="minimap" width="110" height="110"></canvas>
+    <div id="sideBtns">
+      <button id="mmBtn">MAP</button>
+      <button id="stereoBtn">3D</button>
+      <button id="topoBtn">TOPO</button>
+      <button id="obsBtn">IDX</button>
+      <button id="levelBtn">LVL</button>
+      <button id="padBtn">PAD</button>
+    </div>
+    <div id="roomBanner"></div>
+    <div id="historyBar"></div>
+    <div id="seedBar" title="click to copy seed"></div>
+    <div id="debug"></div>
+  </div>
+  <div id="controlBar">
+    <div id="movepad" class="padgroup">
+      <div class="btn" data-key="w"><span class="ico">↑</span>FWD</div>
+      <div class="btn" data-key="a"><span class="ico">←</span>STR L</div>
+      <div class="btn" data-key="s"><span class="ico">↓</span>BACK</div>
+      <div class="btn" data-key="d"><span class="ico">→</span>STR R</div>
+    </div>
+    <div id="turnpad" class="padgroup">
+      <div class="btn" data-key="arrowleft"><span class="ico">↺</span>TURN L</div>
+      <div class="btn" data-key="arrowright"><span class="ico">↻</span>TURN R</div>
+      <div class="btn" data-key="q"><span class="ico">◧</span>STR L</div>
+      <div class="btn" data-key="e"><span class="ico">◨</span>STR R</div>
+    </div>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
