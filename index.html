@@ -17,13 +17,21 @@
   #playArea{flex:1 1 auto;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;
     position:relative;padding:8px 8px 4px;box-sizing:border-box;}
   #stage{position:relative;width:min(96vw,900px);max-height:100%;line-height:0;}
-  #game{width:100%;height:auto;max-height:calc(100vh - var(--ctrl-h) - 24px);display:block;
+  #game{width:100%;height:auto;max-height:calc(100vh - var(--ctrl-h) - 32px);display:block;
     image-rendering:pixelated;background:#000;box-shadow:0 0 40px rgba(57,255,106,0.25);
     border:1px solid var(--glow-dim);touch-action:none;}
   #controlBar{flex:0 0 var(--ctrl-h);width:100%;max-width:900px;display:flex;justify-content:space-between;
     align-items:center;padding:8px 12px 12px;box-sizing:border-box;
-    background:linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.35));border-top:1px solid var(--glow-dim);z-index:30;}
-  #controlBar.hidden{display:none;}
+    background:linear-gradient(to top,rgba(0,0,0,0.92),rgba(0,0,0,0.55));border-top:1px solid var(--glow-dim);
+    z-index:35;position:relative;flex-shrink:0;min-height:var(--ctrl-h);}
+  #controlBar.hidden{display:none !important;}
+  /* keep pads usable on narrow phones */
+  @media (max-width:420px){
+    :root{--ctrl-h:160px;}
+    .btn{width:48px;height:48px;font-size:10px;}
+    #movepad{grid-template-columns:48px 48px 48px;grid-template-rows:48px 48px;}
+    #turnpad{grid-template-columns:48px 48px;grid-template-rows:48px 48px;}
+  }
   .padgroup{display:grid;gap:6px;}
   #movepad{grid-template-columns:54px 54px 54px;grid-template-rows:54px 54px;}
   #movepad .btn[data-key="w"]{grid-column:2;grid-row:1;}
